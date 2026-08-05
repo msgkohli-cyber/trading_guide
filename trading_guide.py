@@ -1,7 +1,6 @@
 import streamlit as st
 import ccxt
 import pandas as pd
-import plotly.graph_objects as go
 
 st.set_page_config(page_title="AI Trading Guide", page_icon="📈", layout="wide")
 
@@ -56,11 +55,8 @@ elif signal == "SELL":
 else:
     st.warning("🟡 HOLD")
 
-fig = go.Figure()
-fig.add_trace(go.Candlestick(x=df['time'], open=df['open'], high=df['high'], low=df['low'], close=df['close']))
-fig.add_trace(go.Scatter(x=df['time'], y=df['ema9'], name="EMA9"))
-fig.add_trace(go.Scatter(x=df['time'], y=df['ema21'], name="EMA21"))
-fig.update_layout(height=500, template="plotly_dark")
-st.plotly_chart(fig, use_container_width=True)
+# Simple chart using Streamlit
+st.subheader("Price Chart")
+st.line_chart(df.set_index('time')[['close', 'ema9', 'ema21']])
 
 st.caption("Binance Futures | Educational Use Only")
