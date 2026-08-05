@@ -4,8 +4,8 @@ import pandas as pd
 
 st.set_page_config(page_title="AI Trading Guide", page_icon="📈", layout="wide")
 
-st.title("🤖 AI Trading Guide - Binance Futures")
-st.markdown("**BTCUSDT & XAUUSDT** | Real-time Signals")
+st.title("🤖 AI Trading Guide")
+st.markdown("**Binance Futures** | BTCUSDT & XAUUSDT")
 
 st.sidebar.header("Settings")
 symbol = st.sidebar.selectbox("Asset", ["BTCUSDT", "XAUUSDT"])
@@ -20,15 +20,16 @@ def get_data(symbol, tf):
         df = pd.DataFrame(ohlcv, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
         df['time'] = pd.to_datetime(df['time'], unit='ms')
         return df
-    except:
+    except Exception as e:
         return None
 
 df = get_data(symbol, timeframe)
 
 if df is None or len(df) < 50:
-    st.error("Data nahi mil paaya")
+    st.error("Data nahi mil paaya. Thodi der baad try karo.")
     st.stop()
 
+# EMA using pandas only
 df['ema9'] = df['close'].ewm(span=9, adjust=False).mean()
 df['ema21'] = df['close'].ewm(span=21, adjust=False).mean()
 
@@ -54,7 +55,7 @@ elif signal == "SELL":
 else:
     st.warning("🟡 HOLD")
 
-st.subheader("Price Chart")
+st.subheader("Price & EMA Chart")
 st.line_chart(df.set_index('time')[['close', 'ema9', 'ema21']])
 
-st.caption("Binance Futures | Educational Use Only")
+st.caption("Data: Binance Futures | Educational Purpose Only")
