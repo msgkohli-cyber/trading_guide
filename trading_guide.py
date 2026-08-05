@@ -20,7 +20,7 @@ def get_data(symbol, tf):
         df = pd.DataFrame(ohlcv, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
         df['time'] = pd.to_datetime(df['time'], unit='ms')
         return df
-    except Exception as e:
+    except:
         return None
 
 df = get_data(symbol, timeframe)
@@ -29,7 +29,6 @@ if df is None or len(df) < 50:
     st.error("Data nahi mil paaya. Thodi der baad try karo.")
     st.stop()
 
-# EMA using pandas only
 df['ema9'] = df['close'].ewm(span=9, adjust=False).mean()
 df['ema21'] = df['close'].ewm(span=21, adjust=False).mean()
 
