@@ -29,7 +29,6 @@ if df is None or len(df) < 50:
     st.error("Data nahi mil paaya")
     st.stop()
 
-# EMA using pandas
 df['ema9'] = df['close'].ewm(span=9, adjust=False).mean()
 df['ema21'] = df['close'].ewm(span=21, adjust=False).mean()
 
@@ -55,7 +54,6 @@ elif signal == "SELL":
 else:
     st.warning("🟡 HOLD")
 
-# Simple chart using Streamlit
 st.subheader("Price Chart")
 st.line_chart(df.set_index('time')[['close', 'ema9', 'ema21']])
 
