@@ -1,43 +1,47 @@
 import streamlit as st
-import ccxt
 import pandas as pd
+import requests
 import time
 
 st.set_page_config(page_title="AI Trading Guide", page_icon="📈", layout="wide")
 
-st.title("🤖 AI Trading Guide - Binance Futures")
-st.markdown("**BTCUSDT & XAUUSDT** | Real-time Signals")
+st.title("🤖 AI Trading Guide - Binance")
+st.markdown("**BTCUSDT & XAUUSDT** | Live Signals")
 
 st.sidebar.header("Settings")
 symbol = st.sidebar.selectbox("Asset", ["BTCUSDT", "XAUUSDT"])
 timeframe = st.sidebar.selectbox("Timeframe", ["5m", "15m", "30m", "1h", "4h"])
 
 @st.cache_data(ttl=45)
-def get_binance_data(symbol, tf, limit=150):
+def get_binance_klines(symbol, interval, limit=150):
+    url = f"https://api.binance.com/api/v3/klines"
+    params = {
+        "symbol": symbol,
+        "interval": interval,
+        "limit": limit
+    }
+    
     try:
-        exchange = ccxt.binance({
-            'enableRateLimit': True,
-            'options': {'defaultType': 'future'}
-        })
-        
-        # Retry 2 times
-        for attempt in range(3):
-            try:
-                ohlcv = exchange.fetch_ohlcv(symbol, timeframe=tf, limit=limit)
-                if ohlcv and len(ohlcv) > 30:
-                    df = pd.DataFrame(ohlcv, columns=['time', 'open', 'high', 'low', 'close', 'volume'])
-                    df['time'] = pd.to_datetime(df['time'], unit='ms')
-                    return df
-                time.sleep(1)
-            except Exception as e:
-                if attempt == 2:
-                    return None
-                time.sleep(2)
-        return None
+        response = requests.get(url, params=params, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            df = pd.DataFrame(data, columns=[
+                'time', 'open', 'high', 'low', 'close', 'volume',
+                'close_time', 'quote_asset_volume', 'trades',
+                'taker_buy_base', 'taker_buy_quote', 'ignore'
+            ])
+            df['time'] = pd.to_datetime(df['time'], unit='ms')
+            df['close'] = pd.to_numeric(df['close'])
+            df['open'] = pd.to_numeric(df['open'])
+            df['high'] = pd.to_numeric(df['high'])
+            df['low'] = pd.to_numeric(df['low'])
+            return df[['time', 'open', 'high', 'low', 'close', 'volume']]
+        else:
+            return None
     except:
         return None
 
-df = get_binance_data(symbol, timeframe)
+df = get_binance_klines(symbol, timeframe)
 
 if df is None or len(df) < 30:
     st.error("Binance se data nahi mil paaya. Thodi der baad try karo ya timeframe change karo.")
@@ -72,4 +76,4 @@ else:
 st.subheader("Price & EMA Chart")
 st.line_chart(df.set_index('time')[['close', 'ema9', 'ema21']])
 
-st.caption("Data Source: Binance Futures | Educational Purpose Only")
+st.caption("Data Source: Binance | Educational Purpose Only")
